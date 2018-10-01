@@ -5,6 +5,7 @@ extern crate clap;
 extern crate serde_derive;
 
 mod commands;
+mod fs;
 mod kubectl;
 mod secrets;
 

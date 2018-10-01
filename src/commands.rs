@@ -1,26 +1,8 @@
-extern crate serde_json;
-
+use fs;
 use kubectl;
 use std::error::Error;
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::Path;
 
 pub fn pull(output_file: String) -> Result<(), Box<Error>> {
   let response = kubectl::get_secrets()?;
-  let output_json: String = serde_json::to_string_pretty(&response).unwrap();
-
-  let path = Path::new(&output_file);
-  let display = path.display();
-  let mut file = match File::create(path) {
-    Err(why) => panic!("couldn't create {}: {}", display, why.description()),
-    Ok(file) => file,
-  };
-
-  match file.write_all(output_json.as_bytes()) {
-    Err(why) => panic!("couldn't write to {}: {}", display, why.description()),
-    Ok(_) => println!("successfully wrote to {}", display),
-  }
-
-  return Ok(());
+  return fs::write_json(output_file, response);
 }
