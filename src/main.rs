@@ -4,25 +4,16 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
+mod kubectl;
 mod secrets;
 
-use secrets::SecretResponse;
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use std::process::Command;
 
-fn main() {
-    let output = Command::new("kubectl")
-        .arg("get")
-        .arg("secrets")
-        .arg("-o")
-        .arg("json")
-        .output()
-        .expect("failed to execute process");
-
-    let response: SecretResponse = serde_json::from_slice(&output.stdout).unwrap();
+fn main() -> Result<(), Box<std::error::Error>> {
+    let response = kubectl::get_secrets()?;
     let output_json: String = serde_json::to_string_pretty(&response).unwrap();
 
     let path = Path::new("output.json");
@@ -36,4 +27,6 @@ fn main() {
         Err(why) => panic!("couldn't write to {}: {}", display, why.description()),
         Ok(_) => println!("successfully wrote to {}", display),
     }
+
+    return Ok(());
 }

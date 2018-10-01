@@ -1,5 +1,5 @@
 [package]
-name = "kubesecrets-rust"
+name = "kubesecrets"
 version = "0.1.0"
 authors = ["Chris Atkin <atkinchris@gmail.com>"]
 
