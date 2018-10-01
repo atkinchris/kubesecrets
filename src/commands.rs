@@ -1,4 +1,3 @@
-extern crate serde;
 extern crate serde_json;
 
 use kubectl;
@@ -7,11 +6,11 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-pub fn pull() -> Result<(), Box<Error>> {
+pub fn pull(output_file: String) -> Result<(), Box<Error>> {
   let response = kubectl::get_secrets()?;
   let output_json: String = serde_json::to_string_pretty(&response).unwrap();
 
-  let path = Path::new("output.json");
+  let path = Path::new(&output_file);
   let display = path.display();
   let mut file = match File::create(path) {
     Err(why) => panic!("couldn't create {}: {}", display, why.description()),
