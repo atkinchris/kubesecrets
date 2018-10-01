@@ -1,4 +1,6 @@
+/releases
 /target
 **/*.rs.bk
 
 *.json
+.DS_Store
