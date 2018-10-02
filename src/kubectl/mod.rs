@@ -2,12 +2,12 @@ extern crate serde;
 extern crate serde_json;
 
 use self::errors::KubectlError;
-use secrets::SecretResponse;
+use secrets::Manifest;
 use std::process::Command;
 
 pub mod errors;
 
-pub fn get_secrets(get_all: bool) -> Result<SecretResponse, KubectlError> {
+pub fn get_secrets(get_all: bool) -> Result<Manifest, KubectlError> {
   let mut command = Command::new("kubectl");
 
   command.arg("get").arg("secrets").arg("-o").arg("json");
@@ -25,6 +25,6 @@ pub fn get_secrets(get_all: bool) -> Result<SecretResponse, KubectlError> {
     return Err(KubectlError::new(&error));
   }
 
-  let response: SecretResponse = serde_json::from_slice(&result.stdout)?;
-  return Ok(response);
+  let manifest: Manifest = serde_json::from_slice(&result.stdout)?;
+  return Ok(manifest);
 }
