@@ -15,19 +15,17 @@ pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> 
   }
 
   println!("{}", json);
-  Ok(())
+  return Ok(());
 }
 
 pub fn push(input_file: &str) -> Result<(), Box<Error>> {
   let input = fs::read_file(input_file)?;
-  let entries: Vec<Entry> = match serde_json::from_str(&input) {
-    Err(why) => panic!("couldn't parse input file, {}", why.description()),
-    Ok(e) => e,
-  };
+  let entries: Vec<Entry> = serde_json::from_str(&input)
+    .unwrap_or_else(|e| panic!("couldn't parse input file, {}", e.description()));
   let items: Vec<Item> = entries.into_iter().map(Item::from_entry).collect();
   let manifest = Manifest::from_items(items);
-  let json: String = serde_json::to_string_pretty(&manifest).unwrap();
 
-  println!("{}", json);
-  Ok(())
+  kubectl::apply(manifest)?;
+
+  return Ok(());
 }
