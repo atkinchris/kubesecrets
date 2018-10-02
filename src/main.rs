@@ -1,9 +1,10 @@
 #[macro_use]
 extern crate clap;
-
 #[macro_use]
 extern crate serde_derive;
+extern crate base64;
 
+mod b64;
 mod commands;
 mod fs;
 mod kubectl;
