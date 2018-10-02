@@ -17,5 +17,5 @@ mkdir -p releases
 tar -czf $FILENAME --directory=target/release kubesecrets
 shasum -a 256 $FILENAME > $FILENAME.shasum
 
-git tag "v${VERSION}"
+git tag --force "v${VERSION}"
 git push --tags
