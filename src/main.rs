@@ -20,13 +20,15 @@ fn main() -> Result<(), Box<std::error::Error>> {
                 .setting(AppSettings::ArgRequiredElseHelp)
                 .about("Pull secrets from kubernetes to a JSON file.")
                 .long_about("This command gets all secrets from k8s, and outputs them to the JSON file specified.")
-                .arg(Arg::with_name("output").help("output file").required(true)),
+                .arg(Arg::with_name("output").short("o").help("output file").required(true))
+                .arg(Arg::with_name("all").short("a").help("get all secrets")),
         ).get_matches();
 
     match matches.subcommand() {
         ("pull", Some(pull_matches)) => {
             let output = pull_matches.value_of("output").unwrap();
-            return commands::pull(output.to_string());
+            let get_all = pull_matches.is_present("all");
+            return commands::pull(output, get_all);
         }
         _ => unreachable!(),
     }

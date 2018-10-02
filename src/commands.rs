@@ -4,8 +4,8 @@ use kubectl;
 use secrets::SecretEntry;
 use std::error::Error;
 
-pub fn pull(output_file: String) -> Result<(), Box<Error>> {
-  let response = kubectl::get_secrets()?;
+pub fn pull(output_file: &str, get_all: bool) -> Result<(), Box<Error>> {
+  let response = kubectl::get_secrets(get_all)?;
 
   let decoded: Vec<SecretEntry> = response
     .items

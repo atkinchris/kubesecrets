@@ -7,12 +7,16 @@ use std::process::Command;
 
 pub mod errors;
 
-pub fn get_secrets() -> Result<SecretResponse, KubectlError> {
-  let result = Command::new("kubectl")
-    .arg("get")
-    .arg("secrets")
-    .arg("-o")
-    .arg("json")
+pub fn get_secrets(get_all: bool) -> Result<SecretResponse, KubectlError> {
+  let mut command = Command::new("kubectl");
+
+  command.arg("get").arg("secrets").arg("-o").arg("json");
+
+  if !get_all {
+    command.arg("-l").arg("managedBy=kubesecrets");
+  }
+
+  let result = command
     .output()
     .unwrap_or_else(|e| panic!("Failed to execute process: {}", e));
 

@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-pub fn write_json(file_path: String, entries: Vec<SecretEntry>) -> Result<(), Box<Error>> {
+pub fn write_json(file_path: &str, entries: Vec<SecretEntry>) -> Result<(), Box<Error>> {
   let output_json: String = serde_json::to_string_pretty(&entries).unwrap();
   let path = Path::new(&file_path);
   let display = path.display();
