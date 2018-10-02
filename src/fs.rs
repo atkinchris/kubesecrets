@@ -18,3 +18,19 @@ pub fn write_file(file_path: &str, contents: String) -> Result<(), Box<Error>> {
 
   return Ok(());
 }
+
+pub fn read_file(file_path: &str) -> Result<String, Box<Error>> {
+  let path = Path::new(&file_path);
+  let display = path.display();
+  let mut file = match File::open(path) {
+    Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+    Ok(file) => file,
+  };
+
+  let mut contents = String::new();
+
+  match file.read_to_string(&mut contents) {
+    Err(why) => panic!("couldn't read from {}: {}", display, why.description()),
+    Ok(_) => Ok(contents),
+  }
+}

@@ -17,10 +17,19 @@ fn main() -> Result<(), Box<std::error::Error>> {
         .setting(AppSettings::ArgRequiredElseHelp)
         .subcommand(
             SubCommand::with_name("pull")
-                .about("Pull secrets from kubernetes to a JSON file.")
-                .long_about("This command gets all secrets from k8s, and outputs them to the JSON file specified.")
+                .about("Pull secrets from kubernetes")
                 .arg(Arg::from_usage("-o, --output [FILE] 'output to file'"))
                 .arg(Arg::from_usage("-a, --all 'get all secrets'")),
+        ).subcommand(
+            SubCommand::with_name("push")
+                .about("Push secrets to kubernetes")
+                .arg(
+                    Arg::with_name("input")
+                        .help("input file containing secrets")
+                        .required(true),
+                ).arg(Arg::from_usage(
+                    "-d, --delete 'remove secrets not in input'",
+                )),
         ).get_matches();
 
     match matches.subcommand() {
@@ -28,6 +37,10 @@ fn main() -> Result<(), Box<std::error::Error>> {
             let output = pull_matches.value_of("output");
             let get_all = pull_matches.is_present("all");
             return commands::pull(get_all, output);
+        }
+        ("push", Some(push_matches)) => {
+            let input = push_matches.value_of("input").unwrap();
+            return commands::push(input);
         }
         _ => unreachable!(),
     }

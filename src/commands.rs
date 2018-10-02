@@ -22,3 +22,9 @@ pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> 
   println!("{}", json);
   Ok(())
 }
+
+pub fn push(input_file: &str) -> Result<(), Box<Error>> {
+  let input = fs::read_file(input_file)?;
+  println!("{}", input);
+  Ok(())
+}
