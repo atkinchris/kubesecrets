@@ -12,7 +12,12 @@ pub mod errors;
 pub fn get_secrets(get_all: bool) -> Result<Manifest, KubectlError> {
   let mut command = Command::new("kubectl");
 
-  command.arg("get").arg("secrets").arg("-o").arg("json");
+  command
+    .stderr(Stdio::inherit())
+    .arg("get")
+    .arg("secrets")
+    .arg("-o")
+    .arg("json");
 
   if !get_all {
     command.arg("-l").arg("managedBy=kubesecrets");
@@ -23,8 +28,7 @@ pub fn get_secrets(get_all: bool) -> Result<Manifest, KubectlError> {
     .unwrap_or_else(|e| panic!("Failed to execute kubectl: {}", e.description()));
 
   if !result.status.success() {
-    let error = String::from_utf8_lossy(&result.stderr);
-    return Err(KubectlError::new(&error));
+    return Err(KubectlError::new("Kubectl failed to retrieve secrets"));
   }
 
   let manifest: Manifest = serde_json::from_slice(&result.stdout)?;
@@ -37,6 +41,7 @@ pub fn apply(manifest: Manifest) -> Result<(), KubectlError> {
     .arg("apply")
     .arg("-f")
     .arg("-")
+    .stderr(Stdio::inherit())
     .stdin(Stdio::piped())
     .stdout(Stdio::piped())
     .spawn()
@@ -50,7 +55,7 @@ pub fn apply(manifest: Manifest) -> Result<(), KubectlError> {
 
   let mut result = String::new();
   match command.stdout.unwrap().read_to_string(&mut result) {
-    Err(why) => panic!("Failed to read stdout from kubectl: {}", why.description()),
+    Err(e) => panic!("Failed to read stdout from kubectl: {}", e.description()),
     Ok(_) => print!("{}", result),
   };
 

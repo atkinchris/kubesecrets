@@ -12,7 +12,7 @@ mod secrets;
 
 use clap::{AppSettings, Arg, SubCommand};
 
-fn main() -> Result<(), Box<std::error::Error>> {
+fn app() -> Result<(), Box<std::error::Error>> {
     let matches = app_from_crate!()
         .setting(AppSettings::ArgRequiredElseHelp)
         .subcommand(
@@ -43,5 +43,12 @@ fn main() -> Result<(), Box<std::error::Error>> {
             return commands::push(input);
         }
         _ => unreachable!(),
+    }
+}
+
+fn main() {
+    if let Err(err) = app() {
+        eprintln!("\n{}", &err.description());
+        std::process::exit(1);
     }
 }
