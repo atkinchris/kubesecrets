@@ -3,6 +3,8 @@ extern crate clap;
 #[macro_use]
 extern crate serde_derive;
 extern crate base64;
+#[macro_use]
+extern crate text_io;
 
 mod b64;
 mod commands;
@@ -27,9 +29,10 @@ fn app() -> Result<(), Box<std::error::Error>> {
                     Arg::with_name("input")
                         .help("input file containing secrets")
                         .required(true),
-                ).arg(Arg::from_usage(
-                    "-d, --delete 'remove secrets not in input'",
-                )),
+                ).arg(
+                    Arg::from_usage("-d, --delete")
+                        .help("delete managed secrets on kubernetes that are not in the input"),
+                ),
         ).get_matches();
 
     match matches.subcommand() {

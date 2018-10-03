@@ -26,7 +26,12 @@ pub fn push(input_file: &str) -> Result<(), Box<Error>> {
   let items: Vec<Item> = entries.into_iter().map(Item::from_entry).collect();
   let manifest = Manifest::from_items(items);
 
-  kubectl::apply(manifest)?;
+  println!("Please enter 'yes' to continue applying secrets.");
+  let line: String = read!("{}\n");
+
+  if line == "yes" {
+    kubectl::apply(manifest)?;
+  }
 
   return Ok(());
 }
