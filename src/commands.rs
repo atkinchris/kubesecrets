@@ -11,10 +11,11 @@ pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> 
   let json: String = serde_json::to_string_pretty(&entries).unwrap();
 
   if output_file.is_some() {
-    return fs::write_file(output_file.unwrap(), json);
+    fs::write_file(output_file.unwrap(), &json)?;
+  } else {
+    println!("{}", json);
   }
 
-  println!("{}", json);
   return Ok(());
 }
 

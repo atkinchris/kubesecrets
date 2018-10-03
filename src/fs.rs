@@ -1,9 +1,11 @@
 use std::error::Error;
 use std::fs::File;
+use std::io;
 use std::io::prelude::*;
+use std::io::ErrorKind;
 use std::path::Path;
 
-pub fn write_file(file_path: &str, contents: String) -> Result<(), Box<Error>> {
+pub fn write_file(file_path: &str, contents: &str) -> io::Result<()> {
   let path = Path::new(&file_path);
   let display = path.display();
   let mut file = match File::create(path) {
@@ -19,11 +21,16 @@ pub fn write_file(file_path: &str, contents: String) -> Result<(), Box<Error>> {
   return Ok(());
 }
 
-pub fn read_file(file_path: &str) -> Result<String, Box<Error>> {
+pub fn read_file(file_path: &str) -> io::Result<String> {
   let path = Path::new(&file_path);
   let display = path.display();
   let mut file = match File::open(path) {
-    Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+    Err(why) => {
+      return Err(io::Error::new(
+        ErrorKind::NotFound,
+        format!("couldn't open {}: {}", display, why.description()),
+      ))
+    }
     Ok(file) => file,
   };
 
