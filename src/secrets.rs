@@ -45,19 +45,17 @@ pub struct Item {
 
 impl Item {
   pub fn from_entry(entry: Entry) -> Item {
-    let metadata = MetaData {
-      name: entry.name,
-      namespace: entry.namespace,
-      labels: entry.labels,
-    };
-
-    return Item {
+    Item {
       api_version: "v1".to_string(),
       kind: "Secret".to_string(),
       entry_type: "Opaque".to_string(),
       data: encode(entry.data),
-      metadata,
-    };
+      metadata: MetaData {
+        name: entry.name,
+        namespace: entry.namespace,
+        labels: entry.labels,
+      },
+    }
   }
 }
 
