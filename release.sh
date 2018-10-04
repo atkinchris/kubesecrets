@@ -25,7 +25,7 @@ class Kubesecrets < Formula
 
   bottle :unneeded
 
-  depends_on "kubectl"
+  depends_on "kubernetes-cli"
 
   def install
     bin.install "kubesecrets"
