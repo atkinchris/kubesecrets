@@ -5,73 +5,57 @@ use self::errors::KubectlError;
 use ansi_term::Colour::Blue;
 use secrets::Manifest;
 use std::error::Error;
-use std::io::{Read, Write};
-use std::process::{Command, Stdio};
+use std::str::from_utf8;
+use subprocess::{Exec, Redirection};
 
 pub mod errors;
 
 pub fn get_secrets(get_all: bool) -> Result<Manifest, KubectlError> {
-  let mut command = Command::new("kubectl");
-
-  command
-    .stderr(Stdio::inherit())
-    .arg("get")
-    .arg("secrets")
-    .arg("-o")
-    .arg("json");
-
+  let mut args = vec!["get", "secrets", "-o", "json"];
   if !get_all {
-    command.arg("-l").arg("managedBy=kubesecrets");
+    args.push("-l");
+    args.push("managedBy=kubesecrets");
   }
 
-  let result = command
-    .output()
+  let output = Exec::cmd("kubectl")
+    .args(&args)
+    .stdout(Redirection::Pipe)
+    .capture()
     .unwrap_or_else(|e| panic!("Failed to execute kubectl: {}", e.description()));
 
-  if !result.status.success() {
+  if !output.exit_status.success() {
     return Err(KubectlError::new("Kubectl failed to retrieve secrets"));
   }
 
-  let manifest: Manifest = serde_json::from_slice(&result.stdout)?;
+  let manifest: Manifest = serde_json::from_slice(&output.stdout)?;
   return Ok(manifest);
 }
 
-pub fn apply(manifest: Manifest, purge: bool) -> Result<(), KubectlError> {
+pub fn apply(manifest: Manifest, prune: bool) -> Result<(), KubectlError> {
   let json: String = serde_json::to_string_pretty(&manifest)?;
-  let mut command = Command::new("kubectl");
+  let mut args = vec!["apply", "-l", "managedBy=kubesecrets"];
 
-  if purge {
-    command.arg("-l").arg("managedBy=kubesecrets").arg("-p");
+  if prune {
+    args.push("--prune");
   }
 
-  let process = command
-    .arg("apply")
+  let output = Exec::cmd("kubectl")
+    .args(&args)
     .arg("-f")
     .arg("-")
-    .stderr(Stdio::inherit())
-    .stdin(Stdio::piped())
-    .stdout(Stdio::piped())
-    .spawn()
+    .stdin(json.into_bytes())
+    .stdout(Redirection::Pipe)
+    .capture()
     .unwrap_or_else(|e| panic!("Failed to execute kubectl: {}", e.description()));
 
-  process
-    .stdin
-    .unwrap()
-    .write_all(json.as_bytes())
-    .unwrap_or_else(|e| panic!("Failed to pipe stdin to kubectl: {}", e.description()));
-
-  let mut result = String::new();
-  process
-    .stdout
-    .unwrap()
-    .read_to_string(&mut result)
-    .unwrap_or_else(|e| panic!("Failed to read stdout from kubectl: {}", e.description()));
-
-  if !command.status().unwrap().success() {
+  if !output.exit_status.success() {
     return Err(KubectlError::new("Kubectl failed to apply secrets"));
   }
 
-  print!("{}\n", Blue.paint(result));
+  let stdout = from_utf8(&output.stdout)
+    .unwrap_or_else(|e| panic!("Failed to read stdout from kubectl: {}", e.description()));
+
+  print!("{}\n", Blue.paint(stdout));
 
   return Ok(());
 }

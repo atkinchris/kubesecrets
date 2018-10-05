@@ -6,6 +6,7 @@ extern crate base64;
 #[macro_use]
 extern crate text_io;
 extern crate ansi_term;
+extern crate subprocess;
 
 mod b64;
 mod commands;
@@ -32,8 +33,8 @@ fn app() -> Result<(), Box<std::error::Error>> {
                         .help("input file containing secrets")
                         .required(true),
                 ).arg(
-                    Arg::from_usage("-p, --purge")
-                        .help("purge managed secrets on kubernetes that are not in the input"),
+                    Arg::from_usage("-p, --prune")
+                        .help("prune managed secrets on kubernetes that are not in the input"),
                 ),
         ).get_matches();
 
@@ -45,8 +46,8 @@ fn app() -> Result<(), Box<std::error::Error>> {
         }
         ("push", Some(push_matches)) => {
             let input = push_matches.value_of("input").unwrap();
-            let purge = push_matches.is_present("purge");
-            return commands::push(input, purge);
+            let prune = push_matches.is_present("prune");
+            return commands::push(input, prune);
         }
         _ => unreachable!(),
     }
