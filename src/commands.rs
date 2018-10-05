@@ -26,7 +26,7 @@ pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> 
   return Ok(());
 }
 
-pub fn push(input_file: &str) -> Result<(), Box<Error>> {
+pub fn push(input_file: &str, purge: bool) -> Result<(), Box<Error>> {
   let input = fs::read_file(input_file)?;
   let entries: Vec<Entry> = serde_json::from_str(&input)
     .unwrap_or_else(|e| panic!("couldn't parse input file, {}", e.description()));
@@ -43,7 +43,7 @@ pub fn push(input_file: &str) -> Result<(), Box<Error>> {
 
   if line == "yes" {
     println!();
-    kubectl::apply(manifest)?;
+    kubectl::apply(manifest, purge)?;
     let message = format!("Applied {} secrets to Kubernetes.", items_length);
     println!("{}", Green.paint(message));
   }

@@ -32,8 +32,8 @@ fn app() -> Result<(), Box<std::error::Error>> {
                         .help("input file containing secrets")
                         .required(true),
                 ).arg(
-                    Arg::from_usage("-d, --delete")
-                        .help("delete managed secrets on kubernetes that are not in the input"),
+                    Arg::from_usage("-p, --purge")
+                        .help("purge managed secrets on kubernetes that are not in the input"),
                 ),
         ).get_matches();
 
@@ -45,7 +45,8 @@ fn app() -> Result<(), Box<std::error::Error>> {
         }
         ("push", Some(push_matches)) => {
             let input = push_matches.value_of("input").unwrap();
-            return commands::push(input);
+            let purge = push_matches.is_present("purge");
+            return commands::push(input, purge);
         }
         _ => unreachable!(),
     }
