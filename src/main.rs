@@ -5,6 +5,7 @@ extern crate serde_derive;
 extern crate base64;
 #[macro_use]
 extern crate text_io;
+extern crate ansi_term;
 
 mod b64;
 mod commands;
@@ -12,6 +13,7 @@ mod fs;
 mod kubectl;
 mod secrets;
 
+use ansi_term::Colour::Red;
 use clap::{AppSettings, Arg, SubCommand};
 
 fn app() -> Result<(), Box<std::error::Error>> {
@@ -51,7 +53,7 @@ fn app() -> Result<(), Box<std::error::Error>> {
 
 fn main() {
     if let Err(err) = app() {
-        eprintln!("\n{}", &err.description());
+        eprintln!("\n{}", Red.paint(err.description()));
         std::process::exit(1);
     }
 }

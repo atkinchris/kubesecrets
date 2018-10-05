@@ -2,6 +2,7 @@ extern crate serde;
 extern crate serde_json;
 
 use self::errors::KubectlError;
+use ansi_term::Colour::Blue;
 use secrets::Manifest;
 use std::error::Error;
 use std::io::{Read, Write};
@@ -56,7 +57,7 @@ pub fn apply(manifest: Manifest) -> Result<(), KubectlError> {
   let mut result = String::new();
   match command.stdout.unwrap().read_to_string(&mut result) {
     Err(e) => panic!("Failed to read stdout from kubectl: {}", e.description()),
-    Ok(_) => print!("{}", result),
+    Ok(_) => print!("{}\n", Blue.paint(result)),
   };
 
   return Ok(());

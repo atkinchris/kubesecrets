@@ -15,7 +15,7 @@ pub fn write_file(file_path: &str, contents: &str) -> io::Result<()> {
 
   match file.write_all(contents.as_bytes()) {
     Err(why) => panic!("couldn't write to {}: {}", display, why.description()),
-    Ok(_) => println!("successfully wrote to {}", display),
+    Ok(_) => (),
   }
 
   return Ok(());
