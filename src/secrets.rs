@@ -73,6 +73,16 @@ impl Hash for Item {
   }
 }
 
+pub trait IntoNames {
+  fn into_names(self) -> Vec<String>;
+}
+
+impl<'a> IntoNames for Vec<&'a Item> {
+  fn into_names(self) -> Vec<String> {
+    self.iter().map(|i| i.metadata.name.to_string()).collect()
+  }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Manifest {

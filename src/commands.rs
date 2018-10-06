@@ -1,10 +1,10 @@
 extern crate serde_json;
 
-use ansi_term::Colour::{Green, White};
+use ansi_term::Colour::{Green, Red, White};
 use difference::difference;
 use fs;
 use kubectl;
-use secrets::{Entry, Item, Manifest};
+use secrets::{Entry, IntoNames, Item, Manifest};
 use std::error::Error;
 
 pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> {
@@ -27,17 +27,41 @@ pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> 
   return Ok(());
 }
 
-pub fn push(input_file: &str, purge: bool) -> Result<(), Box<Error>> {
+pub fn push(input_file: &str, prune: bool) -> Result<(), Box<Error>> {
   let input = fs::read_file(input_file)?;
   let entries: Vec<Entry> = serde_json::from_str(&input)
     .unwrap_or_else(|e| panic!("couldn't parse input file, {}", e.description()));
   let items: Vec<Item> = entries.into_iter().map(Item::from_entry).collect();
   let items_length = items.len();
-  let manifest = Manifest::from_items(items);
 
-  difference(&manifest.items, &manifest.items);
+  {
+    let existing = kubectl::get_secrets(false)?.items;
+    let (unchanged, added, deleted) = difference(&existing, &items);
 
-  println!("Read {} secrets from \"{}\".\n", items_length, input_file);
+    println!("Read {} secrets from \"{}\".\n", items_length, input_file);
+
+    if unchanged.len() > 0 {
+      println!(
+        "To be updated:\n{}\n",
+        White.bold().paint(unchanged.into_names().join("\n"))
+      );
+    }
+
+    if added.len() > 0 {
+      println!(
+        "To be added:\n{}\n",
+        Green.bold().paint(added.into_names().join("\n"))
+      );
+    }
+
+    if deleted.len() > 0 && prune {
+      println!(
+        "To be pruned:\n{}\n",
+        Red.bold().paint(deleted.into_names().join("\n"))
+      );
+    }
+  }
+
   println!(
     "Please type '{}' to continue applying secrets.",
     White.bold().paint("yes")
@@ -46,7 +70,8 @@ pub fn push(input_file: &str, purge: bool) -> Result<(), Box<Error>> {
 
   if line == "yes" {
     println!();
-    kubectl::apply(manifest, purge)?;
+    let manifest = Manifest::from_items(items);
+    kubectl::apply(manifest, prune)?;
     let message = format!("Applied {} secrets to Kubernetes.", items_length);
     println!("{}", Green.paint(message));
   }
