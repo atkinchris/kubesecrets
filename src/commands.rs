@@ -1,6 +1,7 @@
 extern crate serde_json;
 
 use ansi_term::Colour::{Green, White};
+use difference::difference;
 use fs;
 use kubectl;
 use secrets::{Entry, Item, Manifest};
@@ -33,6 +34,8 @@ pub fn push(input_file: &str, purge: bool) -> Result<(), Box<Error>> {
   let items: Vec<Item> = entries.into_iter().map(Item::from_entry).collect();
   let items_length = items.len();
   let manifest = Manifest::from_items(items);
+
+  difference(&manifest.items, &manifest.items);
 
   println!("Read {} secrets from \"{}\".\n", items_length, input_file);
   println!(

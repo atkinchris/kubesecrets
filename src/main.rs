@@ -10,6 +10,7 @@ extern crate subprocess;
 
 mod b64;
 mod commands;
+mod difference;
 mod fs;
 mod kubectl;
 mod secrets;

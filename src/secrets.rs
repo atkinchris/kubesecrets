@@ -3,6 +3,7 @@ extern crate serde_json;
 
 use b64::{decode, encode};
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Entry {
@@ -56,6 +57,19 @@ impl Item {
         labels: entry.labels,
       },
     }
+  }
+}
+
+impl Eq for Item {}
+impl PartialEq for Item {
+  fn eq(&self, other: &Item) -> bool {
+    self.metadata.name == other.metadata.name
+  }
+}
+
+impl Hash for Item {
+  fn hash<H: Hasher>(&self, state: &mut H) {
+    self.metadata.name.hash(state);
   }
 }
 
