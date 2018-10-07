@@ -5,9 +5,9 @@ use b64::{decode, encode};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Entry {
-  name: String,
+  pub name: String,
   namespace: String,
   #[serde(default)]
   labels: HashMap<String, String>,
@@ -22,6 +22,19 @@ impl Entry {
       labels: item.metadata.labels,
       data: decode(item.data),
     }
+  }
+}
+
+impl Eq for Entry {}
+impl PartialEq for Entry {
+  fn eq(&self, other: &Entry) -> bool {
+    self.name == other.name
+  }
+}
+
+impl Hash for Entry {
+  fn hash<H: Hasher>(&self, state: &mut H) {
+    self.name.hash(state);
   }
 }
 

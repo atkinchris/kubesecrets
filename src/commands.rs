@@ -1,7 +1,9 @@
 extern crate serde_json;
 
 use ansi_term::Colour::{Green, Red, White};
+use application_error::ApplicationError;
 use difference::difference;
+use duplicates::find_duplicates;
 use fs;
 use kubectl;
 use secrets::{Entry, IntoNames, Item, Manifest};
@@ -31,6 +33,15 @@ pub fn push(input_file: &str, prune: bool) -> Result<(), Box<Error>> {
   let input = fs::read_file(input_file)?;
   let entries: Vec<Entry> = serde_json::from_str(&input)
     .unwrap_or_else(|e| panic!("couldn't parse input file, {}", e.description()));
+
+  match find_duplicates(entries) {
+    Some(duplicates) => {
+      let names: Vec<String> = duplicates.into_iter().map(|i| i.name).collect();
+      Err(ApplicationError::new(&names.join("\n")))
+    }
+    None => Ok(()),
+  };
+
   let items: Vec<Item> = entries.into_iter().map(Item::from_entry).collect();
   let items_length = items.len();
 

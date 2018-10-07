@@ -8,9 +8,11 @@ extern crate text_io;
 extern crate ansi_term;
 extern crate subprocess;
 
+mod application_error;
 mod b64;
 mod commands;
 mod difference;
+mod duplicates;
 mod fs;
 mod kubectl;
 mod secrets;
