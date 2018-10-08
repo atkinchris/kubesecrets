@@ -1,15 +1,15 @@
 extern crate serde_json;
 
 use ansi_term::Colour::{Green, Red, White};
-use application_error::ApplicationError;
 use difference::difference;
 use duplicates::find_duplicates;
+use errors::ApplicationError;
 use fs;
 use kubectl;
 use secrets::{Entry, IntoNames, Item, Manifest};
 use std::error::Error;
 
-pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> {
+pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), ApplicationError> {
   let manifest = kubectl::get_secrets(get_all)?;
   let entries: Vec<Entry> = manifest.items.into_iter().map(Entry::from_item).collect();
   let json: String = serde_json::to_string_pretty(&entries).unwrap();
@@ -29,18 +29,23 @@ pub fn pull(get_all: bool, output_file: Option<&str>) -> Result<(), Box<Error>> 
   return Ok(());
 }
 
-pub fn push(input_file: &str, prune: bool) -> Result<(), Box<Error>> {
+pub fn push(input_file: &str, prune: bool) -> Result<(), ApplicationError> {
   let input = fs::read_file(input_file)?;
   let entries: Vec<Entry> = serde_json::from_str(&input)
     .unwrap_or_else(|e| panic!("couldn't parse input file, {}", e.description()));
 
-  match find_duplicates(entries) {
-    Some(duplicates) => {
-      let names: Vec<String> = duplicates.into_iter().map(|i| i.name).collect();
-      Err(ApplicationError::new(&names.join("\n")))
+  {
+    let duplicates = find_duplicates(&entries);
+    if duplicates.is_some() {
+      let names: Vec<String> = duplicates
+        .unwrap()
+        .into_iter()
+        .map(|i| i.name.to_owned())
+        .collect();
+      let message = format!("Duplicate secrets found:\n{}", names.join("\n"));
+      return Err(ApplicationError::new(&message));
     }
-    None => Ok(()),
-  };
+  }
 
   let items: Vec<Item> = entries.into_iter().map(Item::from_entry).collect();
   let items_length = items.len();

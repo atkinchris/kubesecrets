@@ -8,19 +8,20 @@ extern crate text_io;
 extern crate ansi_term;
 extern crate subprocess;
 
-mod application_error;
 mod b64;
 mod commands;
 mod difference;
 mod duplicates;
+mod errors;
 mod fs;
 mod kubectl;
 mod secrets;
 
 use ansi_term::Colour::Red;
 use clap::{AppSettings, Arg, SubCommand};
+use errors::ApplicationError;
 
-fn app() -> Result<(), Box<std::error::Error>> {
+fn app() -> Result<(), ApplicationError> {
     let matches = app_from_crate!()
         .setting(AppSettings::ArgRequiredElseHelp)
         .subcommand(
