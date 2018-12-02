@@ -29,18 +29,21 @@ fn app() -> Result<(), ApplicationError> {
                 .about("Pull secrets from kubernetes")
                 .arg(Arg::from_usage("-o, --output [FILE] 'output to file'"))
                 .arg(Arg::from_usage("-a, --all 'get all secrets'")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("push")
                 .about("Push secrets to kubernetes")
                 .arg(
                     Arg::with_name("input")
                         .help("input file containing secrets")
                         .required(true),
-                ).arg(
+                )
+                .arg(
                     Arg::from_usage("-p, --prune")
                         .help("prune managed secrets on kubernetes that are not in the input"),
                 ),
-        ).get_matches();
+        )
+        .get_matches();
 
     match matches.subcommand() {
         ("pull", Some(pull_matches)) => {
